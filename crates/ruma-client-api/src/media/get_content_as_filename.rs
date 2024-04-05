@@ -9,7 +9,7 @@ pub mod v3 {
 
     use std::time::Duration;
 
-    use http::header::{CONTENT_DISPOSITION, CONTENT_TYPE};
+    use http::header::{CACHE_CONTROL, CONTENT_DISPOSITION, CONTENT_TYPE};
     use ruma_common::{
         api::{request, response, Metadata},
         metadata, IdParseError, MxcUri, OwnedServerName,
@@ -100,6 +100,14 @@ pub mod v3 {
         /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Resource-Policy#syntax
         #[ruma_api(header = CROSS_ORIGIN_RESOURCE_POLICY)]
         pub cross_origin_resource_policy: Option<String>,
+
+        /// The value of the `Cache-Control` HTTP header.
+        ///
+        /// See [MDN] for the syntax.
+        ///
+        /// [MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control#syntax
+        #[ruma_api(header = CACHE_CONTROL)]
+        pub cache_control: Option<String>,
     }
 
     impl Request {
@@ -133,6 +141,7 @@ pub mod v3 {
                 content_type: None,
                 content_disposition: None,
                 cross_origin_resource_policy: Some("cross-origin".to_owned()),
+                cache_control: None,
             }
         }
     }
