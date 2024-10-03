@@ -158,6 +158,7 @@ impl From<RegistrationInit> for Registration {
             sender_localpart,
             namespaces,
             rate_limited,
+            #[cfg(feature = "unstable-msc2409")]
             receive_ephemeral,
             protocols,
         } = init;
@@ -169,6 +170,7 @@ impl From<RegistrationInit> for Registration {
             sender_localpart,
             namespaces,
             rate_limited,
+            #[cfg(feature = "unstable-msc2409")]
             receive_ephemeral,
             protocols,
         }
