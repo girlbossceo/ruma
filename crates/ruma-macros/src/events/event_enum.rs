@@ -125,9 +125,9 @@ fn expand_event_enum(
 
     Ok(quote! {
         #( #attrs )*
+        #[non_exhaustive]
         #[derive(Clone, Debug)]
         #[allow(clippy::large_enum_variant, unused_qualifications)]
-        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
             #(
                 #docs
@@ -389,10 +389,10 @@ fn expand_content_enum(
 
     Ok(quote! {
         #( #attrs )*
+        #[non_exhaustive]
         #[derive(Clone, Debug, #serde::Serialize)]
         #[serde(untagged)]
         #[allow(clippy::large_enum_variant)]
-        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
             #(
                 #docs
@@ -464,9 +464,9 @@ fn expand_full_content_enum(
 
     Ok(quote! {
         #( #attrs )*
+        #[non_exhaustive]
         #[derive(Clone, Debug)]
         #[allow(clippy::large_enum_variant)]
-        #[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
         pub enum #ident {
             #(
                 #docs

@@ -103,7 +103,11 @@ pub struct Registration {
     /// Whether the application service wants to receive ephemeral data.
     ///
     /// Defaults to `false`.
-    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default", alias = "de.sorunome.msc2409.push_ephemeral")]
+    #[serde(
+        default,
+        skip_serializing_if = "ruma_common::serde::is_default",
+        alias = "de.sorunome.msc2409.push_ephemeral"
+    )]
     pub receive_ephemeral: bool,
 }
 
@@ -140,7 +144,6 @@ pub struct RegistrationInit {
     ///
     /// The sender is excluded.
     pub rate_limited: Option<bool>,
-
 
     /// The external protocols which the application service provides (e.g. IRC).
     pub protocols: Option<Vec<String>>,

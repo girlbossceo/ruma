@@ -12,7 +12,6 @@ use ruma_common::{
     api::{request, response, Metadata},
     directory::RoomTypeFilter,
     metadata,
-    room::RoomType,
     serde::{deserialize_cow_str, duration::opt_ms, Raw},
     MilliSecondsSinceUnixEpoch, OneTimeKeyAlgorithm, OwnedMxcUri, OwnedRoomId, OwnedUserId, RoomId,
 };

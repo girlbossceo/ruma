@@ -245,7 +245,7 @@ pub fn verify_json(
             let signature = Base64::<Standard>::parse(signature)
                 .map_err(|e| ParseError::base64("signature", signature, e))?;
 
-            verify_json_with(&Ed25519Verifier, &public_key, &signature, &object)?;
+            verify_json_with(&Ed25519Verifier, public_key, &signature, &object)?;
         }
     }
 
@@ -599,7 +599,7 @@ pub fn verify_event(
             let signature = Base64::<Standard>::parse(signature)
                 .map_err(|e| ParseError::base64("signature", signature, e))?;
 
-            verify_json_with(&Ed25519Verifier, &public_key, &signature, &canonical_json)?;
+            verify_json_with(&Ed25519Verifier, public_key, &signature, &canonical_json)?;
             checked = true;
         }
 
@@ -651,7 +651,7 @@ pub fn required_keys(
         };
 
         let entry = map.entry(server.clone()).or_default();
-        set.into_iter()
+        set.iter()
             .map(|(k, _)| k.clone())
             .map(TryInto::try_into)
             .filter_map(Result::ok)

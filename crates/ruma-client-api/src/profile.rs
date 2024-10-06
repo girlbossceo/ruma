@@ -1,4 +1,5 @@
 //! Endpoints for user profiles.
+#![allow(missing_docs)]
 
 pub mod delete_profile_key;
 pub mod delete_timezone_key;

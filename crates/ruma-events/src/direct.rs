@@ -1,6 +1,7 @@
 //! Types for the [`m.direct`] event.
 //!
 //! [`m.direct`]: https://spec.matrix.org/latest/client-server-api/#mdirect
+#![allow(unexpected_cfgs)]
 
 use std::{
     collections::{btree_map, BTreeMap},

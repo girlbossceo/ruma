@@ -329,7 +329,7 @@ where
             target_user_member_event.as_ref(),
             sender,
             sender_member_event.as_ref(),
-            &incoming_event,
+            incoming_event,
             current_third_party_invite,
             power_levels_event.as_ref(),
             join_rules_event.as_ref(),
@@ -412,7 +412,7 @@ where
 
     // If the event type's required power level is greater than the sender's power level, reject
     // If the event has a state_key that starts with an @ and does not match the sender, reject.
-    if !can_send_event(&incoming_event, power_levels_event.as_ref(), sender_power_level) {
+    if !can_send_event(incoming_event, power_levels_event.as_ref(), sender_power_level) {
         warn!("user cannot send event");
         return Ok(false);
     }
@@ -423,7 +423,7 @@ where
 
         if let Some(required_pwr_lvl) = check_power_levels(
             room_version,
-            &incoming_event,
+            incoming_event,
             power_levels_event.as_ref(),
             sender_power_level,
         ) {

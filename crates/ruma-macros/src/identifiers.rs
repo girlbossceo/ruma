@@ -87,7 +87,6 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
 
         #[automatically_derived]
         impl #impl_generics #id_ty {
-            #[cfg(not(feature = "compat-arbitrary-length-ids"))]
             #[doc = #max_bytes_docs]
             pub const MAX_BYTES: usize = ruma_identifiers_validation::MAX_BYTES;
 
@@ -386,6 +385,7 @@ fn expand_owned_id(input: &ItemStruct, inline_bytes: usize) -> TokenStream {
         impl #impl_generics std::borrow::ToOwned for #id_ty {
             type Owned = #owned_ty;
 
+            #[inline]
             fn to_owned(&self) -> Self::Owned {
                 Self::Owned::new(self.as_bytes().into())
             }
@@ -916,7 +916,7 @@ fn expand_as_str_impls(ty: TokenStream, impl_generics: &ImplGenerics<'_>) -> Tok
         impl #impl_generics std::fmt::Display for #ty {
             #[inline]
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}", self.as_str())
+                f.write_str(self.as_str())
             }
         }
 

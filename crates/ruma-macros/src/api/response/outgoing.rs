@@ -49,7 +49,7 @@ impl Response {
 										}
                                     }
                                 },
-                                "ContentDisposition" | _ => {
+                                _ => {
                                     quote! {
                                         if let Some(ref header) = self.#field_name {
     	                            		headers.insert(

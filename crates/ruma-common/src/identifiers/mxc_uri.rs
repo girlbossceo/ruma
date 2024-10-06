@@ -21,6 +21,7 @@ pub struct MxcUri(str);
 
 /// Structured MXC URI which may reference strings from separate sources without serialization
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[allow(clippy::exhaustive_structs)]
 pub struct Mxc<'a> {
     /// ServerName part of the MXC URI
     pub server_name: &'a ServerName,

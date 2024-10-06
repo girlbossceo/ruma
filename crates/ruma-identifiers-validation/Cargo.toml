@@ -12,9 +12,6 @@ rust-version = { workspace = true }
 all-features = true
 
 [features]
-# Allow IDs to exceed 255 bytes.
-compat-arbitrary-length-ids = []
-
 # Don't validate the version in `server_signing_key_version::validate`.
 compat-server-signing-key-version = []
 

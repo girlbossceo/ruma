@@ -368,7 +368,6 @@ impl Timeline {
 
 /// State events in the room.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct State {
     /// A list of state events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -388,7 +387,7 @@ impl State {
 
     /// Creates a `State` with events
     pub fn with_events(events: Vec<Raw<AnySyncStateEvent>>) -> Self {
-        State { events, ..Default::default() }
+        State { events }
     }
 }
 
@@ -500,7 +499,6 @@ impl RoomSummary {
 
 /// Updates to the rooms that the user has been invited to.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct InvitedRoom {
     /// The state of a room that the user has been invited to.
     #[serde(default, skip_serializing_if = "InviteState::is_empty")]
@@ -521,13 +519,12 @@ impl InvitedRoom {
 
 impl From<InviteState> for InvitedRoom {
     fn from(invite_state: InviteState) -> Self {
-        InvitedRoom { invite_state, ..Default::default() }
+        InvitedRoom { invite_state }
     }
 }
 
 /// The state of a room that the user has been invited to.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-#[cfg_attr(not(feature = "unstable-exhaustive-types"), non_exhaustive)]
 pub struct InviteState {
     /// A list of state events.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -548,7 +545,7 @@ impl InviteState {
 
 impl From<Vec<Raw<AnyStrippedStateEvent>>> for InviteState {
     fn from(events: Vec<Raw<AnyStrippedStateEvent>>) -> Self {
-        InviteState { events, ..Default::default() }
+        InviteState { events }
     }
 }
 
