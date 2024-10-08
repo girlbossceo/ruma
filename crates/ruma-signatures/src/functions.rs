@@ -1003,7 +1003,7 @@ mod tests {
         let encoded_public_key = Base64::new(newly_generated_key_pair.public_key().to_vec());
         let version = ServerSigningKeyId::from_parts(
             SigningKeyAlgorithm::Ed25519,
-            key_pair_sender.version().into(),
+            key_pair_sender.version().try_into().unwrap(),
         );
         sender_key_map.insert(version.to_string(), encoded_public_key);
         public_key_map.insert("domain-sender".to_owned(), sender_key_map);
@@ -1177,8 +1177,10 @@ mod tests {
     fn add_key_to_map(public_key_map: &mut PublicKeyMap, name: &str, pair: &Ed25519KeyPair) {
         let sender_key_map = public_key_map.entry(name.to_owned()).or_default();
         let encoded_public_key = Base64::new(pair.public_key().to_vec());
-        let version =
-            ServerSigningKeyId::from_parts(SigningKeyAlgorithm::Ed25519, pair.version().into());
+        let version = ServerSigningKeyId::from_parts(
+            SigningKeyAlgorithm::Ed25519,
+            pair.version().try_into().unwrap(),
+        );
 
         sender_key_map.insert(version.to_string(), encoded_public_key);
     }
@@ -1192,7 +1194,7 @@ mod tests {
         let encoded_public_key = Base64::new(pair.public_key().to_vec());
         let version = ServerSigningKeyId::from_parts(
             SigningKeyAlgorithm::from("an-unknown-algorithm"),
-            pair.version().into(),
+            pair.version().try_into().unwrap(),
         );
 
         sender_key_map.insert(version.to_string(), encoded_public_key);
