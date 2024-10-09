@@ -55,6 +55,7 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
 
     let as_str_docs = format!("Creates a string slice from this `{id}`.");
     let as_bytes_docs = format!("Creates a byte slice from this `{id}`.");
+    let max_bytes_docs = format!("Maximum byte length for any `{id}`.");
 
     let as_str_impl = match &input.fields {
         Fields::Named(_) | Fields::Unit => {
@@ -79,6 +80,10 @@ pub fn expand_id_zst(input: ItemStruct) -> syn::Result<TokenStream> {
 
         #[automatically_derived]
         impl #impl_generics #id_ty {
+            #[cfg(not(feature = "compat-arbitrary-length-ids"))]
+            #[doc = #max_bytes_docs]
+            pub const MAX_BYTES: usize = ruma_identifiers_validation::MAX_BYTES;
+
             pub(super) const fn from_borrowed(s: &str) -> &Self {
                 unsafe { std::mem::transmute(s) }
             }
