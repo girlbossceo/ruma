@@ -137,7 +137,7 @@ mod tests {
     /// Convenience for converting a string of JSON into its canonical form.
     fn test_canonical_json(input: &str) -> String {
         let object = from_json_str(input).unwrap();
-        canonical_json(&object).unwrap()
+        canonical_json(object).unwrap()
     }
 
     #[test]
@@ -253,7 +253,7 @@ mod tests {
         let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
-        verify_json(&public_key_map, &value).unwrap();
+        verify_json(&public_key_map, value).unwrap();
     }
 
     #[test]
@@ -290,13 +290,13 @@ mod tests {
         let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
-        verify_json(&public_key_map, &value).unwrap();
+        verify_json(&public_key_map, value).unwrap();
 
         let reverse_value = from_json_str(
             r#"{"two":"Two","signatures":{"domain":{"ed25519:1":"t6Ehmh6XTDz7qNWI0QI5tNPSliWLPQP/+Fzz3LpdCS7q1k2G2/5b5Embs2j4uG3ZeivejrzqSVoBcdocRpa+AQ"}},"one":1}"#
         ).unwrap();
 
-        verify_json(&public_key_map, &reverse_value).unwrap();
+        verify_json(&public_key_map, reverse_value).unwrap();
     }
 
     #[test]
@@ -309,7 +309,7 @@ mod tests {
         let mut public_key_map = BTreeMap::new();
         public_key_map.insert("domain".into(), signature_set);
 
-        verify_json(&public_key_map, &value).unwrap_err();
+        verify_json(&public_key_map, value).unwrap_err();
     }
 
     #[test]
