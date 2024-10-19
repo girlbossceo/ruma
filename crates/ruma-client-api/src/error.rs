@@ -33,6 +33,19 @@ mod kind_serde;
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ErrorKind {
+    /// M_UNREDACTED_CONTENT_DELETED and FI.MAU.MSC2815_UNREDACTED_CONTENT_DELETED
+    ///
+    /// as per MSC2815
+    UnredactedContentDeleted {
+        /// fi.mau.msc2815.content_keep_ms
+        content_keep_ms: Option<Duration>,
+    },
+
+    /// M_UNREDACTED_CONTENT_NOT_RECEIVED and FI.MAU.MSC2815_UNREDACTED_CONTENT_NOT_RECEIVED
+    ///
+    /// as per MSC2815
+    UnredactedContentNotReceived,
+
     /// M_FORBIDDEN
     #[non_exhaustive]
     Forbidden {
@@ -238,6 +251,10 @@ pub struct Extra(BTreeMap<String, JsonValue>);
 impl AsRef<str> for ErrorKind {
     fn as_ref(&self) -> &str {
         match self {
+            // TODO: replace with M_UNREDACTED_CONTENT_DELETED when stabilised
+            Self::UnredactedContentDeleted { .. } => "FI.MAU.MSC2815_UNREDACTED_CONTENT_DELETED",
+            // TODO: replace with M_UNREDACTED_CONTENT_NOT_RECEIVED when stabilised
+            Self::UnredactedContentNotReceived => "FI.MAU.MSC2815_UNREDACTED_CONTENT_NOT_RECEIVED",
             Self::Forbidden { .. } => "M_FORBIDDEN",
             Self::UnknownToken { .. } => "M_UNKNOWN_TOKEN",
             Self::MissingToken => "M_MISSING_TOKEN",

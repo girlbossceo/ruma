@@ -35,6 +35,17 @@ pub mod v3 {
         /// The ID of the event.
         #[ruma_api(path)]
         pub event_id: OwnedEventId,
+
+        /// Query parameter to tell the server if it should return the redacted content of the
+        /// requested event
+        ///
+        /// as per MSC2815: https://github.com/matrix-org/matrix-spec-proposals/pull/2815
+        #[ruma_api(query)]
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            alias = "fi.mau.msc2815.include_unredacted_content"
+        )]
+        pub include_unredacted_content: Option<bool>,
     }
 
     /// Response type for the `get_room_event` endpoint.
@@ -47,8 +58,12 @@ pub mod v3 {
 
     impl Request {
         /// Creates a new `Request` with the given room ID and event ID.
-        pub fn new(room_id: OwnedRoomId, event_id: OwnedEventId) -> Self {
-            Self { room_id, event_id }
+        pub fn new(
+            room_id: OwnedRoomId,
+            event_id: OwnedEventId,
+            include_unredacted_content: Option<bool>,
+        ) -> Self {
+            Self { room_id, event_id, include_unredacted_content }
         }
     }
 
