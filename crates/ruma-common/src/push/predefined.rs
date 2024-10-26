@@ -22,6 +22,7 @@ impl Ruleset {
     pub fn server_default(user_id: &UserId) -> Self {
         Self {
             content: [
+                #[cfg(not(feature = "unstable-msc4210"))]
                 #[allow(deprecated)]
                 PatternedPushRule::contains_user_name(user_id),
             ]
@@ -32,9 +33,11 @@ impl Ruleset {
                 ConditionalPushRule::invite_for_me(user_id),
                 ConditionalPushRule::member_event(),
                 ConditionalPushRule::is_user_mention(user_id),
+                #[cfg(not(feature = "unstable-msc4210"))]
                 #[allow(deprecated)]
                 ConditionalPushRule::contains_display_name(),
                 ConditionalPushRule::is_room_mention(),
+                #[cfg(not(feature = "unstable-msc4210"))]
                 #[allow(deprecated)]
                 ConditionalPushRule::roomnotif(),
                 ConditionalPushRule::tombstone(),

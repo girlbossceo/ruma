@@ -487,6 +487,18 @@ impl ConditionalPushRule {
             return false;
         }
 
+        // The old mention rules are disabled when an m.mentions field is present.
+        //
+        // MSC4210 always disables the legacy rules.
+        #[allow(deprecated)]
+        if (self.rule_id == PredefinedOverrideRuleId::RoomNotif.as_ref()
+            || self.rule_id == PredefinedOverrideRuleId::ContainsDisplayName.as_ref()
+            || self.rule_id == PredefinedContentRuleId::ContainsUserName.as_ref())
+            && (event.contains_mentions() || cfg!(feature = "unstable-msc4210"))
+        {
+            return false;
+        }
+
         #[cfg(feature = "unstable-msc3932")]
         {
             // These 3 rules always apply.
@@ -508,15 +520,6 @@ impl ConditionalPushRule {
                     return false;
                 }
             }
-        }
-
-        // The old mention rules are disabled when an m.mentions field is present.
-        #[allow(deprecated)]
-        if (self.rule_id == PredefinedOverrideRuleId::RoomNotif.as_ref()
-            || self.rule_id == PredefinedOverrideRuleId::ContainsDisplayName.as_ref())
-            && event.contains_mentions()
-        {
-            return false;
         }
 
         self.conditions.iter().all(|cond| cond.applies(event, context))

@@ -30,6 +30,7 @@ unstable-msc3026 = []
 unstable-msc3930 = []
 unstable-msc3931 = []
 unstable-msc3932 = ["unstable-msc3931"]
+unstable-msc4210 = []
 unstable-unspecified = []
 
 # Allow IDs to exceed 255 bytes.
