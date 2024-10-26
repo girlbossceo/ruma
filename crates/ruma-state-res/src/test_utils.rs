@@ -11,7 +11,7 @@ use futures_util::future::ready;
 use js_int::{int, uint};
 use ruma_common::{
     event_id, room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId,
-    RoomVersionId, UserId,
+    RoomVersionId, ServerSignatures, UserId,
 };
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
@@ -401,7 +401,7 @@ pub(crate) fn to_init_pdu_event(
             prev_events: vec![],
             depth: uint!(0),
             hashes: EventHash::new("".to_owned()),
-            signatures: BTreeMap::new(),
+            signatures: ServerSignatures::default(),
         }),
     })
 }
@@ -439,7 +439,7 @@ where
             prev_events,
             depth: uint!(0),
             hashes: EventHash::new("".to_owned()),
-            signatures: BTreeMap::new(),
+            signatures: ServerSignatures::default(),
         }),
     })
 }
