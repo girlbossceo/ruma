@@ -2,6 +2,13 @@
 
 Bug fixes:
 
+- The `KeyId::key_name` method now returns the key name. In 0.14.0, `key_name`
+  mistakenly returned the algorithm.
+
+# 0.14.0
+
+Bug fixes:
+
 - The `instance_id` field was removed from `ProtocolInstanceInit` and is now an
   `Option<String>` for `ProtocolInstance`. It made the `unstable-unspecified`
   feature non-additive.
