@@ -340,7 +340,7 @@ where
             // Only push on the heap once older events have been cleared
             out.remove(node.borrow());
             if out.is_empty() {
-                let (power_level, age) = key_fn(node.clone()).await?;
+                let (power_level, age) = key_fn(parent.clone()).await?;
                 heap.push(Reverse(TieBreaker {
                     inv_power_level: -power_level,
                     age,
