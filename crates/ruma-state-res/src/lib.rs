@@ -75,16 +75,16 @@ where
     // Split non-conflicting and conflicting state
     let (clean, conflicting) = separate(state_sets.into_iter());
 
-    debug!("non conflicting events: {}", clean.len());
-    trace!("{clean:?}");
+    debug!(count = clean.len(), "non-conflicting events");
+    trace!(map = ?clean, "non-conflicting events");
 
     if conflicting.is_empty() {
         debug!("no conflicting state found");
         return Ok(clean);
     }
 
-    debug!("conflicting events: {}", conflicting.len());
-    debug!("{conflicting:?}");
+    debug!(count = conflicting.len(), "conflicting events");
+    trace!(map = ?conflicting, "conflicting events");
 
     let auth_chain_diff =
         get_auth_chain_diff(&auth_chain_sets).chain(conflicting.into_values().flatten());
@@ -97,8 +97,8 @@ where
         .collect()
         .await;
 
-    debug!("full conflicted set: {}", all_conflicted.len());
-    debug!("{all_conflicted:?}");
+    debug!(count = all_conflicted.len(), "full conflicted set");
+    trace!(set = ?all_conflicted, "full conflicted set");
 
     // We used to check that all events are events from the correct room
     // this is now a check the caller of `resolve` must make.
@@ -114,8 +114,8 @@ where
     let sorted_control_levels =
         reverse_topological_power_sort(control_events, &all_conflicted, &event_fetch).await?;
 
-    debug!("sorted control events: {}", sorted_control_levels.len());
-    trace!("{sorted_control_levels:?}");
+    debug!(count = sorted_control_levels.len(), "power events");
+    trace!(list = ?sorted_control_levels, "sorted power events");
 
     let room_version = RoomVersion::new(room_version)?;
     // Sequentially auth check each control event.
@@ -123,8 +123,8 @@ where
         iterative_auth_check(&room_version, &sorted_control_levels, clean.clone(), &event_fetch)
             .await?;
 
-    debug!("resolved control events: {}", resolved_control.len());
-    trace!("{resolved_control:?}");
+    debug!(count = resolved_control.len(), "resolved power events");
+    trace!(map = ?resolved_control, "resolved power events");
 
     // At this point the control_events have been resolved we now have to
     // sort the remaining events using the mainline of the resolved power level.
@@ -138,18 +138,18 @@ where
         .cloned()
         .collect::<Vec<_>>();
 
-    debug!("events left to resolve: {}", events_to_resolve.len());
-    trace!("{events_to_resolve:?}");
+    debug!(count = events_to_resolve.len(), "events left to resolve");
+    trace!(list = ?events_to_resolve, "events left to resolve");
 
     // This "epochs" power level event
     let power_event = resolved_control.get(&(StateEventType::RoomPowerLevels, "".into()));
 
-    debug!("power event: {power_event:?}");
+    debug!(event_id = ?power_event, "power event");
 
     let sorted_left_events =
         mainline_sort(&events_to_resolve, power_event.cloned(), &event_fetch).await?;
 
-    trace!("events left, sorted: {sorted_left_events:?}");
+    trace!(list = ?sorted_left_events, "events left, sorted");
 
     let mut resolved_state = iterative_auth_check(
         &room_version,
@@ -162,6 +162,9 @@ where
     // Add unconflicted state to the resolved state
     // We priorities the unconflicting state
     resolved_state.extend(clean);
+
+    debug!("state resolution finished");
+
     Ok(resolved_state)
 }
 
@@ -424,7 +427,7 @@ where
 {
     debug!("starting iterative auth check");
 
-    debug!("performing auth checks on {events_to_check:?}");
+    trace!(list = ?events_to_check, "events to check");
 
     let mut resolved_state = unconflicted_state;
 
@@ -448,7 +451,7 @@ where
                     ev,
                 );
             } else {
-                warn!("auth event id for {aid} is missing {event_id}");
+                warn!(auth_event_id = %aid, "missing auth event");
             }
         }
 

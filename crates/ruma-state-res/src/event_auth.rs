@@ -18,7 +18,7 @@ use serde::{
     Deserialize,
 };
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
-use tracing::{debug, error, warn};
+use tracing::{debug, trace, error, warn};
 
 use crate::{
     power_levels::{
@@ -747,7 +747,12 @@ fn valid_membership_change(
 fn can_send_event(event: impl Event, ple: Option<impl Event>, user_level: Int) -> bool {
     let event_type_power_level = get_send_level(event.event_type(), event.state_key(), ple);
 
-    debug!("{} ev_type {event_type_power_level} usr {user_level}", event.event_id());
+    debug!(
+        required_level = %event_type_power_level,
+        user_level = %user_level,
+        state_key = ?event.state_key(),
+        "permissions factors",
+    );
 
     if user_level < event_type_power_level {
         return false;
@@ -772,7 +777,7 @@ fn check_power_levels(
     match power_event.state_key() {
         Some("") => {}
         Some(key) => {
-            error!("m.room.power_levels event has non-empty state key: {key}");
+            error!(state_key = key, "m.room.power_levels event has non-empty state key");
             return None;
         }
         None => {
@@ -810,7 +815,7 @@ fn check_power_levels(
         user_levels_to_check.insert(user);
     }
 
-    debug!("users to check {user_levels_to_check:?}");
+    trace!(set = ?user_levels_to_check, "user levels to check");
 
     let mut event_levels_to_check = BTreeSet::new();
     let old_list = &current_content.events;
@@ -819,7 +824,7 @@ fn check_power_levels(
         event_levels_to_check.insert(ev_id);
     }
 
-    debug!("events to check {event_levels_to_check:?}");
+    trace!(set = ?event_levels_to_check, "event levels to check");
 
     let old_state = &current_content;
     let new_state = &user_content;
