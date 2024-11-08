@@ -354,7 +354,7 @@ where
     // If type is m.room.third_party_invite
     let sender_power_level = if let Some(pl) = &power_levels_event {
         let content = deserialize_power_levels_content_fields(pl.content().get(), room_version)?;
-        if let Some(level) = content.users.get(sender) {
+        if let Some(level) = content.get_user_power(sender) {
             *level
         } else {
             content.users_default
@@ -528,7 +528,7 @@ fn valid_membership_change(
 
             let content =
                 deserialize_power_levels_content_fields(pl.content().get(), room_version)?;
-            let user_pl = if let Some(level) = content.users.get(user_for_join_auth) {
+            let user_pl = if let Some(level) = content.get_user_power(user_for_join_auth) {
                 *level
             } else {
                 content.users_default

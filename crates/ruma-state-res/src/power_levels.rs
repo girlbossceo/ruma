@@ -3,8 +3,11 @@ use std::collections::BTreeMap;
 use js_int::Int;
 use ruma_common::{
     power_levels::{default_power_level, NotificationPowerLevels},
-    serde::{btreemap_deserialize_v1_powerlevel_values, deserialize_v1_powerlevel},
-    OwnedUserId,
+    serde::{
+        deserialize_v1_powerlevel, vec_deserialize_int_powerlevel_values,
+        vec_deserialize_v1_powerlevel_values,
+    },
+    OwnedUserId, UserId,
 };
 use ruma_events::{room::power_levels::RoomPowerLevelsEventContent, TimelineEventType};
 use serde::Deserialize;
@@ -98,44 +101,65 @@ impl From<IntNotificationPowerLevels> for NotificationPowerLevels {
     }
 }
 
+#[inline]
 pub(crate) fn deserialize_power_levels(
     content: &str,
     room_version: &RoomVersion,
 ) -> Option<RoomPowerLevelsEventContent> {
     if room_version.integer_power_levels {
-        match from_json_str::<IntRoomPowerLevelsEventContent>(content) {
-            Ok(content) => Some(content.into()),
-            Err(_) => {
-                error!("m.room.power_levels event is not valid with integer values");
-                None
-            }
-        }
+        deserialize_integer_power_levels(content)
     } else {
-        match from_json_str(content) {
-            Ok(content) => Some(content),
-            Err(_) => {
-                error!(
-                    "m.room.power_levels event is not valid with integer or string integer values"
-                );
-                None
-            }
+        deserialize_legacy_power_levels(content)
+    }
+}
+
+fn deserialize_integer_power_levels(content: &str) -> Option<RoomPowerLevelsEventContent> {
+    match from_json_str::<IntRoomPowerLevelsEventContent>(content) {
+        Ok(content) => Some(content.into()),
+        Err(_) => {
+            error!("m.room.power_levels event is not valid with integer values");
+            None
+        }
+    }
+}
+
+fn deserialize_legacy_power_levels(content: &str) -> Option<RoomPowerLevelsEventContent> {
+    match from_json_str(content) {
+        Ok(content) => Some(content),
+        Err(_) => {
+            error!("m.room.power_levels event is not valid with integer or string integer values");
+            None
         }
     }
 }
 
 #[derive(Deserialize)]
 pub(crate) struct PowerLevelsContentFields {
-    #[serde(default, deserialize_with = "btreemap_deserialize_v1_powerlevel_values")]
-    pub(crate) users: BTreeMap<OwnedUserId, Int>,
+    #[serde(default, deserialize_with = "vec_deserialize_v1_powerlevel_values")]
+    pub(crate) users: Vec<(OwnedUserId, Int)>,
 
     #[serde(default, deserialize_with = "deserialize_v1_powerlevel")]
     pub(crate) users_default: Int,
 }
 
+impl PowerLevelsContentFields {
+    pub(crate) fn get_user_power(&self, user_id: &UserId) -> Option<&Int> {
+        let comparator = |item: &(OwnedUserId, Int)| {
+            let item: &UserId = &item.0;
+            item.cmp(user_id)
+        };
+
+        self.users
+            .binary_search_by(comparator)
+            .ok()
+            .and_then(|idx| self.users.get(idx).map(|item| &item.1))
+    }
+}
+
 #[derive(Deserialize)]
 struct IntPowerLevelsContentFields {
-    #[serde(default)]
-    users: BTreeMap<OwnedUserId, Int>,
+    #[serde(default, deserialize_with = "vec_deserialize_int_powerlevel_values")]
+    users: Vec<(OwnedUserId, Int)>,
 
     #[serde(default)]
     users_default: Int,
@@ -148,15 +172,28 @@ impl From<IntPowerLevelsContentFields> for PowerLevelsContentFields {
     }
 }
 
+#[inline]
 pub(crate) fn deserialize_power_levels_content_fields(
     content: &str,
     room_version: &RoomVersion,
 ) -> Result<PowerLevelsContentFields, Error> {
     if room_version.integer_power_levels {
-        from_json_str::<IntPowerLevelsContentFields>(content).map(|r| r.into())
+        deserialize_integer_power_levels_content_fields(content)
     } else {
-        from_json_str(content)
+        deserialize_legacy_power_levels_content_fields(content)
     }
+}
+
+fn deserialize_integer_power_levels_content_fields(
+    content: &str,
+) -> Result<PowerLevelsContentFields, Error> {
+    from_json_str::<IntPowerLevelsContentFields>(content).map(|r| r.into())
+}
+
+fn deserialize_legacy_power_levels_content_fields(
+    content: &str,
+) -> Result<PowerLevelsContentFields, Error> {
+    from_json_str(content)
 }
 
 #[derive(Deserialize)]
