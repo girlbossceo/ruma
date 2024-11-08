@@ -600,6 +600,7 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
             }
         }
 
+        #[cfg(feature = "canonical-json")]
         #[automatically_derived]
         impl<'a, #generic_params> std::convert::TryFrom<&'a crate::CanonicalJsonValue> for &'a #id_ty {
             type Error = crate::IdParseError;
@@ -618,6 +619,7 @@ fn expand_checked_impls(input: &ItemStruct, validate: Path) -> TokenStream {
             }
         }
 
+        #[cfg(feature = "canonical-json")]
         #[automatically_derived]
         impl<'a, #generic_params> std::convert::TryFrom<Option<&'a crate::CanonicalJsonValue>> for &'a #id_ty {
             type Error = crate::IdParseError;
