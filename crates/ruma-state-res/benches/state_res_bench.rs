@@ -22,7 +22,7 @@ use js_int::{int, uint};
 use maplit::{btreemap, hashmap, hashset};
 use ruma_common::{
     room_id, user_id, EventId, MilliSecondsSinceUnixEpoch, OwnedEventId, RoomId, RoomVersionId,
-    UserId,
+    Signatures, UserId,
 };
 use ruma_events::{
     pdu::{EventHash, Pdu, RoomV3Pdu},
@@ -384,7 +384,7 @@ where
             prev_events,
             depth: uint!(0),
             hashes: EventHash::new(String::new()),
-            signatures: btreemap! {},
+            signatures: Signatures::new(),
         }),
     })
 }
