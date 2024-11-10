@@ -18,6 +18,7 @@ use std::{
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use event::PduEvent;
+use futures_util::{future, future::ready};
 use js_int::{int, uint};
 use maplit::{btreemap, hashmap, hashset};
 use ruma_common::{
@@ -50,8 +51,8 @@ fn lexico_topo_sort(c: &mut Criterion) {
             event_id("p") => hashset![event_id("o")],
         };
         b.iter(|| {
-            let _ = state_res::lexicographical_topological_sort(&graph, |_id| {
-                Ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0))))
+            let _ = state_res::lexicographical_topological_sort(&graph, &|_| {
+                future::ok((int!(0), MilliSecondsSinceUnixEpoch(uint!(0))))
             });
         });
     });
@@ -64,20 +65,27 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
         // build up the DAG
         let (state_at_bob, state_at_charlie, _) = store.set_up();
 
-        b.iter(|| {
+        b.iter(|| async {
             let ev_map = store.0.clone();
             let state_sets = [&state_at_bob, &state_at_charlie];
+            let fetch = |id: OwnedEventId| ready(ev_map.get(&id).map(Arc::clone));
+            let exists = |id: OwnedEventId| ready(ev_map.get(&id).is_some());
+            let auth_chain_sets = state_sets
+                .iter()
+                .map(|map| {
+                    store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap()
+                })
+                .collect();
+
             let _ = match state_res::resolve(
                 &RoomVersionId::V6,
-                state_sets,
-                state_sets
-                    .iter()
-                    .map(|map| {
-                        store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap()
-                    })
-                    .collect(),
-                |id| ev_map.get(id).map(Arc::clone),
-            ) {
+                state_sets.into_iter(),
+                &auth_chain_sets,
+                &fetch,
+                &exists,
+            )
+            .await
+            {
                 Ok(state) => state,
                 Err(e) => panic!("{e}"),
             };
@@ -123,19 +131,26 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
         })
         .collect::<StateMap<_>>();
 
-        b.iter(|| {
+        b.iter(|| async {
             let state_sets = [&state_set_a, &state_set_b];
+            let auth_chain_sets = state_sets
+                .iter()
+                .map(|map| {
+                    store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap()
+                })
+                .collect();
+
+            let fetch = |id: OwnedEventId| ready(inner.get(&id).map(Arc::clone));
+            let exists = |id: OwnedEventId| ready(inner.get(&id).is_some());
             let _ = match state_res::resolve(
                 &RoomVersionId::V6,
-                state_sets,
-                state_sets
-                    .iter()
-                    .map(|map| {
-                        store.auth_event_ids(room_id(), map.values().cloned().collect()).unwrap()
-                    })
-                    .collect(),
-                |id| inner.get(id).map(Arc::clone),
-            ) {
+                state_sets.into_iter(),
+                &auth_chain_sets,
+                &fetch,
+                &exists,
+            )
+            .await
+            {
                 Ok(state) => state,
                 Err(_) => panic!("resolution failed during benchmarking"),
             };
@@ -596,7 +611,7 @@ mod event {
             }
         }
 
-        fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
+        fn prev_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + Send + '_> {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => Box::new(ev.prev_events.iter().map(|(id, _)| id)),
                 Pdu::RoomV3Pdu(ev) => Box::new(ev.prev_events.iter()),
@@ -605,7 +620,7 @@ mod event {
             }
         }
 
-        fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + '_> {
+        fn auth_events(&self) -> Box<dyn DoubleEndedIterator<Item = &Self::Id> + Send + '_> {
             match &self.rest {
                 Pdu::RoomV1Pdu(ev) => Box::new(ev.auth_events.iter().map(|(id, _)| id)),
                 Pdu::RoomV3Pdu(ev) => Box::new(ev.auth_events.iter()),
@@ -625,9 +640,9 @@ mod event {
     }
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct PduEvent {
-        pub event_id: OwnedEventId,
+    pub(crate) struct PduEvent {
+        pub(crate) event_id: OwnedEventId,
         #[serde(flatten)]
-        pub rest: Pdu,
+        pub(crate) rest: Pdu,
     }
 }
