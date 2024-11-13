@@ -1,5 +1,14 @@
 # [unreleased]
 
+Breaking changes:
+
+- Take newly introduced `DirectUserIdentifier(str)` as a key for `DirectEventContent`.
+  This change allows to have an email or MSISDN phone number as a key for example,
+  which can be used when issuing invites through third-party systems.
+  `DirectUserIdentifier` can easily be converted to an `UserId`.
+
+# 0.29.1
+
 Bug fixes:
 
 - Markdown text constructors now detect even more markdown syntax like removed
