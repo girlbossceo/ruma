@@ -14,7 +14,7 @@ use ruma_events::{
     StateEventType, TimelineEventType,
 };
 use serde_json::from_str as from_json_str;
-use tracing::{debug, trace, warn};
+use tracing::{debug, instrument, trace, warn};
 
 mod error;
 pub mod event_auth;
@@ -46,13 +46,14 @@ pub type StateMap<T> = HashMap<(StateEventType, String), T>;
 /// * `auth_chain_sets` - The full recursive set of `auth_events` for each event in the
 ///   `state_sets`.
 ///
-/// * `fetch_event` - Any event not found in the `event_map` will defer to this closure to find the
+/// * `event_fetch` - Any event not found in the `event_map` will defer to this closure to find the
 ///   event.
 ///
 /// ## Invariants
 ///
 /// The caller of `resolve` must ensure that all the events are from the same room. Although this
 /// function takes a `RoomId` it does not check that each event is part of the same room.
+//#[instrument(level = "debug", skip(state_sets, auth_chain_sets, event_fetch))]
 pub async fn resolve<'a, E, SetIter, Fetch, FetchFut, Exists, ExistsFut>(
     room_version: &RoomVersionId,
     state_sets: impl IntoIterator<IntoIter = SetIter> + Send,
@@ -224,6 +225,7 @@ where
 ///
 /// The power level is negative because a higher power level is equated to an earlier (further back
 /// in time) origin server timestamp.
+#[instrument(level = "debug", skip_all)]
 async fn reverse_topological_power_sort<E, F, Fut>(
     events_to_sort: Vec<E::Id>,
     auth_diff: &HashSet<E::Id>,
@@ -250,7 +252,11 @@ where
     let mut event_to_pl = HashMap::new();
     for event_id in graph.keys() {
         let pl = get_power_level_for_sender(event_id, fetch_event).await?;
-        debug!("{event_id} power level {pl}");
+        debug!(
+            event_id = event_id.borrow().as_str(),
+            power_level = i64::from(pl),
+            "found the power level of an event's sender",
+        );
 
         event_to_pl.insert(event_id.clone(), pl);
 
@@ -273,6 +279,7 @@ where
 ///
 /// `key_fn` is used as to obtain the power level and age of an event for breaking ties (together
 /// with the event ID).
+#[instrument(level = "debug", skip_all)]
 pub async fn lexicographical_topological_sort<Id, F, Fut>(
     graph: &HashMap<Id, HashSet<Id>>,
     key_fn: &F,
@@ -451,7 +458,7 @@ where
                     ev,
                 );
             } else {
-                warn!(auth_event_id = %aid, "missing auth event");
+                warn!(event_id = aid.borrow().as_str(), "missing auth event");
             }
         }
 
@@ -593,7 +600,7 @@ where
     E::Id: Borrow<EventId> + Send,
 {
     while let Some(sort_ev) = event {
-        debug!("mainline event_id {}", sort_ev.event_id());
+        debug!(event_id = sort_ev.event_id().borrow().as_str(), "mainline");
         let id = sort_ev.event_id();
         if let Some(depth) = mainline_map.get(id.borrow()) {
             return Ok(*depth);
@@ -1243,11 +1250,11 @@ mod tests {
             };
 
         debug!(
-            "{:#?}",
-            resolved
+            resolved = ?resolved
                 .iter()
                 .map(|((ty, key), id)| format!("(({ty}{key:?}), {id})"))
-                .collect::<Vec<_>>()
+                .collect::<Vec<_>>(),
+                "resolved state",
         );
 
         let expected =

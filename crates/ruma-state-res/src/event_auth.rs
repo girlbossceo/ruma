@@ -18,7 +18,7 @@ use serde::{
     Deserialize,
 };
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
-use tracing::{debug, error, trace, warn};
+use tracing::{debug, error, instrument, trace, warn};
 
 use crate::{
     power_levels::{
@@ -122,6 +122,7 @@ pub fn auth_types_for_event(
 ///
 /// The `fetch_state` closure should gather state from a state snapshot. We need to know if the
 /// event passes auth against some state not a recursive collection of auth_events fields.
+#[instrument(level = "debug", skip_all, fields(event_id = incoming_event.event_id().borrow().as_str()))]
 pub async fn auth_check<F, Fut, Fetched, Incoming>(
     room_version: &RoomVersion,
     incoming_event: &Incoming,
@@ -413,14 +414,14 @@ where
             sender_power_level,
         ) {
             if !required_pwr_lvl {
-                warn!("power level was not allowed");
+                warn!("m.room.power_levels was not allowed");
                 return Ok(false);
             }
         } else {
-            warn!("power level was not allowed");
+            warn!("m.room.power_levels was not allowed");
             return Ok(false);
         }
-        debug!("power levels event allowed");
+        debug!("m.room.power_levels event allowed");
     }
 
     // Room version 3: Redaction events are always accepted (provided the event is allowed by
@@ -748,8 +749,8 @@ fn can_send_event(event: impl Event, ple: Option<impl Event>, user_level: Int) -
     let event_type_power_level = get_send_level(event.event_type(), event.state_key(), ple);
 
     debug!(
-        required_level = %event_type_power_level,
-        user_level = %user_level,
+        required_level = i64::from(event_type_power_level),
+        user_level = i64::from(user_level),
         state_key = ?event.state_key(),
         "permissions factors",
     );
