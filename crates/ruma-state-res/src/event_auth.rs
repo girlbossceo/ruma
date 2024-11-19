@@ -18,7 +18,7 @@ use serde::{
     Deserialize,
 };
 use serde_json::{from_str as from_json_str, value::RawValue as RawJsonValue};
-use tracing::{debug, trace, error, warn};
+use tracing::{debug, error, trace, warn};
 
 use crate::{
     power_levels::{
