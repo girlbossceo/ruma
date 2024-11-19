@@ -728,7 +728,7 @@ fn valid_membership_change(
                 // 4. Otherwise, reject.
                 warn!(
                     ?target_user_membership_event_id,
-                    "Membership state of ban, invite or join are invalid",
+                    "Knocking with a membership state of ban, invite or join is invalid",
                 );
                 false
             } else {
