@@ -83,7 +83,12 @@ pub mod msc3266 {
         pub room_type: Option<RoomType>,
 
         /// Version of the room.
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            rename = "im.nheko.summary.room_version",
+            alias = "im.nheko.summary.version",
+            alias = "room_version"
+        )]
         pub room_version: Option<RoomVersionId>,
 
         /// The current membership of this user in the room.
@@ -95,7 +100,11 @@ pub mod msc3266 {
         pub membership: Option<MembershipState>,
 
         /// If the room is encrypted, the algorithm used for this room.
-        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(
+            skip_serializing_if = "Option::is_none",
+            rename = "im.nheko.summary.encryption",
+            alias = "encryption"
+        )]
         pub encryption: Option<EventEncryptionAlgorithm>,
     }
 
