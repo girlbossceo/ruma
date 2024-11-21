@@ -706,14 +706,18 @@ fn valid_membership_change(
         }
         MembershipState::Knock if room_version.allow_knocking => {
             // 1. If the `join_rule` is anything other than `knock` or `knock_restricted`, reject.
-            if join_rules != JoinRule::Knock
-                || room_version.knock_restricted_join_rule
-                    && matches!(join_rules, JoinRule::KnockRestricted(_))
-            {
+            if !matches!(join_rules, JoinRule::KnockRestricted(_) | JoinRule::Knock) {
                 warn!("Join rule is not set to knock or knock_restricted, knocking is not allowed");
                 false
+            } else if matches!(join_rules, JoinRule::KnockRestricted(_))
+                && !room_version.knock_restricted_join_rule
+            {
+                // 2. If the `join_rule` is `knock_restricted`, but the room does not support
+                //    `knock_restricted`, reject.
+                warn!("Join rule is set to knock_restricted but room version does not support knock_restricted, knocking is not allowed");
+                false
             } else if sender != target_user {
-                // 2. If `sender` does not match `state_key`, reject.
+                // 3. If `sender` does not match `state_key`, reject.
                 warn!(
                     ?sender,
                     ?target_user,
@@ -724,8 +728,8 @@ fn valid_membership_change(
                 sender_membership,
                 MembershipState::Ban | MembershipState::Invite | MembershipState::Join
             ) {
-                // 3. If the `sender`'s current membership is not `ban`, `invite`, or `join`, allow.
-                // 4. Otherwise, reject.
+                // 4. If the `sender`'s current membership is not `ban`, `invite`, or `join`, allow.
+                // 5. Otherwise, reject.
                 warn!(
                     ?target_user_membership_event_id,
                     "Knocking with a membership state of ban, invite or join is invalid",
