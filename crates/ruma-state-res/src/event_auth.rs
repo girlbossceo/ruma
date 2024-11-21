@@ -659,9 +659,14 @@ fn valid_membership_change(
         MembershipState::Leave => {
             if sender == target_user {
                 let allow = target_user_current_membership == MembershipState::Join
-                    || target_user_current_membership == MembershipState::Invite;
+                    || target_user_current_membership == MembershipState::Invite
+                    || target_user_current_membership == MembershipState::Knock;
                 if !allow {
-                    warn!(?target_user_membership_event_id, "Can't leave if not invited or joined");
+                    warn!(
+                        ?target_user_membership_event_id,
+                        ?target_user_current_membership,
+                        "Can't leave if sender is not already invited, knocked, or joined"
+                    );
                 }
                 allow
             } else if !sender_is_joined
