@@ -138,6 +138,9 @@ event_enum! {
         "org.matrix.msc3401.call.member" => super::call::member,
         #[ruma_enum(alias = "m.room.preview_urls")]
         "org.matrix.room.preview_urls" => super::room::preview_url,
+        #[cfg(feature = "unstable-msc4171")]
+        #[ruma_enum(alias = "m.member_hints")]
+        "io.element.functional_members" => super::member_hints,
     }
 
     /// Any to-device event.
