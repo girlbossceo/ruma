@@ -19,7 +19,6 @@ unstable-exhaustive-types = []
 
 [dependencies]
 futures-util = "0.3"
-itertools = "0.13.0"
 js_int = { workspace = true }
 ruma-common = { workspace = true, features = ["api"] }
 ruma-events = { workspace = true }
