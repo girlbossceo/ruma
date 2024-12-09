@@ -98,7 +98,7 @@ pub struct Registration {
 
     /// Whether the homeserver should send EDUs to the appservice, as per MSC2409
     #[cfg(feature = "unstable-msc2409")]
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "de.sorunome.msc2409.push_ephemeral")]
     pub receive_ephemeral: Option<bool>,
 
     /// The external protocols which the application service provides (e.g. IRC).
