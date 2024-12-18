@@ -96,14 +96,15 @@ pub struct Registration {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rate_limited: Option<bool>,
 
-    /// Whether the homeserver should send EDUs to the appservice, as per MSC2409
-    #[cfg(feature = "unstable-msc2409")]
-    #[serde(skip_serializing_if = "Option::is_none", alias = "de.sorunome.msc2409.push_ephemeral")]
-    pub receive_ephemeral: Option<bool>,
-
     /// The external protocols which the application service provides (e.g. IRC).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub protocols: Option<Vec<String>>,
+
+    /// Whether the application service wants to receive ephemeral data.
+    ///
+    /// Defaults to `false`.
+    #[serde(default, skip_serializing_if = "ruma_common::serde::is_default", alias = "de.sorunome.msc2409.push_ephemeral")]
+    pub receive_ephemeral: bool,
 }
 
 /// Initial set of fields of `Registration`.
@@ -140,9 +141,6 @@ pub struct RegistrationInit {
     /// The sender is excluded.
     pub rate_limited: Option<bool>,
 
-    /// Whether the homeserver should send EDUs to the appservice, as per MSC2409
-    #[cfg(feature = "unstable-msc2409")]
-    pub receive_ephemeral: Option<bool>,
 
     /// The external protocols which the application service provides (e.g. IRC).
     pub protocols: Option<Vec<String>>,
@@ -158,8 +156,6 @@ impl From<RegistrationInit> for Registration {
             sender_localpart,
             namespaces,
             rate_limited,
-            #[cfg(feature = "unstable-msc2409")]
-            receive_ephemeral,
             protocols,
         } = init;
         Self {
@@ -170,8 +166,7 @@ impl From<RegistrationInit> for Registration {
             sender_localpart,
             namespaces,
             rate_limited,
-            #[cfg(feature = "unstable-msc2409")]
-            receive_ephemeral,
+            receive_ephemeral: false,
             protocols,
         }
     }
