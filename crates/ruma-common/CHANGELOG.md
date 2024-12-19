@@ -1,5 +1,11 @@
 # [unreleased]
 
+Improvements:
+
+- Add `MatrixVersion::V1_13`.
+
+# 0.15.0
+
 Breaking changes:
 
 - `#[serde(flatten)]` on the only body field of a `#[request]` or `#[response]`
