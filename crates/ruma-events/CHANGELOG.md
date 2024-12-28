@@ -12,6 +12,10 @@
     event.
   - `make_replacement` does not take the replied-to message anymore.
 
+Improvements:
+
+- Add unstable support for the `is_animated` flag for images, according to MSC4230.
+
 # 0.30.0
 
 Breaking changes:
