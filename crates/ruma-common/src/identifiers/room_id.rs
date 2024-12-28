@@ -20,7 +20,10 @@ use crate::RoomOrAliasId;
 /// [room ID]: https://spec.matrix.org/latest/appendices/#room-ids
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
-#[ruma_id(validate = ruma_identifiers_validation::room_id::validate)]
+#[ruma_id(
+	validate = ruma_identifiers_validation::room_id::validate,
+	inline_bytes = 48
+)]
 pub struct RoomId(str);
 
 impl RoomId {
@@ -35,6 +38,7 @@ impl RoomId {
     }
 
     /// Returns the server name of the room ID.
+    #[inline]
     pub fn server_name(&self) -> Option<&ServerName> {
         <&RoomOrAliasId>::from(self).server_name()
     }

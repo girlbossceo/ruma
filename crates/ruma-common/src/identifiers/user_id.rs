@@ -17,7 +17,10 @@ use super::{matrix_uri::UriAction, IdParseError, MatrixToUri, MatrixUri, ServerN
 /// [user ID]: https://spec.matrix.org/latest/appendices/#user-identifiers
 #[repr(transparent)]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, IdZst)]
-#[ruma_id(validate = ruma_identifiers_validation::user_id::validate)]
+#[ruma_id(
+	validate = ruma_identifiers_validation::user_id::validate,
+	inline_bytes = 40,
+)]
 pub struct UserId(str);
 
 impl UserId {
@@ -42,13 +45,13 @@ impl UserId {
     /// localpart, not the localpart plus the `@` prefix, or the localpart plus server name without
     /// the `@` prefix.
     pub fn parse_with_server_name(
-        id: impl AsRef<str> + Into<Box<str>>,
+        id: impl AsRef<str> + Into<String>,
         server_name: &ServerName,
     ) -> Result<OwnedUserId, IdParseError> {
         let id_str = id.as_ref();
 
         if id_str.starts_with('@') {
-            Self::parse(id).map(Into::into)
+            Self::parse_into_owned(id.into())
         } else {
             let _ = localpart_is_fully_conforming(id_str)?;
             Ok(Self::from_borrowed(&format!("@{id_str}:{server_name}")).to_owned())
@@ -103,6 +106,7 @@ impl UserId {
     ///
     /// A historical user ID is one that doesn't conform to the latest specification of the user ID
     /// grammar but is still accepted because it was previously allowed.
+    #[inline]
     pub fn is_historical(&self) -> bool {
         !localpart_is_fully_conforming(self.localpart()).unwrap()
     }
@@ -120,6 +124,7 @@ impl UserId {
     ///     display_name = "jplatte",
     /// );
     /// ```
+    #[inline]
     pub fn matrix_to_uri(&self) -> MatrixToUri {
         MatrixToUri::new(self.into(), Vec::new())
     }
@@ -140,6 +145,7 @@ impl UserId {
     ///     display_name = "jplatte",
     /// );
     /// ```
+    #[inline]
     pub fn matrix_uri(&self, chat: bool) -> MatrixUri {
         MatrixUri::new(self.into(), Vec::new(), Some(UriAction::Chat).filter(|_| chat))
     }
