@@ -1,5 +1,19 @@
 # [unreleased]
 
+# 0.20.0
+
+Breaking changes:
+
+- `ErrorKind` does not implement `AsRef<str>` and `Display` anymore. To get the
+  same result, use `ErrorKind::errcode()`. The `ErrorCode` that is returned
+  implements those traits.
+
+Bug fixes:
+
+- `knock_state` in `KnockedRoom` and `events` in `KnockState` are no longer
+  required during deserialization and are no longer serialized if they are empty.
+  This was a deviation from the spec, those fields were never required.
+
 Improvements:
 
 - Add unstable support for reporting rooms, according to MSC4151.
